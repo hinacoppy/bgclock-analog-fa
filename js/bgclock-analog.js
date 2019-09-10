@@ -158,7 +158,7 @@ function pause_in(stat) {
     font = "<i class='fas fa-pause-circle fa-8x'></i>";
     break;
   case "TIMEOUT":
-    font = "<i class='fas fa-skull fa-8x'></i>";
+    font = "<i class='fas fa-bomb fa-8x faa-tada animated'></i>";
     break;
   }
   $("#pauseinfo").html(font).show();
