@@ -1,1 +1,0 @@
-# bgclock-analog (FontAwesome version)
