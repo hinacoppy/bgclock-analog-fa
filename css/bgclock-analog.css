@@ -13,6 +13,7 @@ body{
   min-height: 100%;
   height: 100%;
   font-family: 'Arial', 'Meiryo UI';
+  background-color: var(--body-bg-color);
 }
 a {
   color: inherit;
@@ -88,6 +89,7 @@ a {
   text-align: center;
   border-radius: 20%;
   margin: 0 1vw;
+  background-color: var(--score-bg-color);
 }
 .timer{
   display: flex;
@@ -111,18 +113,32 @@ a {
   margin-top: 1vh;
   display: inline-block;
 }
+.btnenable{
+  background-color: var(--btn-enable);
+  border-color: var(--btn-frame-enable);
+  color: var(--btn-frame-enable);
+}
+.btndisable{
+  background-color: var(--btn-disable);
+  border-color: var(--btn-frame-disable);
+  color: var(--btn-frame-disable);
+}
 .pauseinfo{
   font-size: 1.5vw;
   z-index: 3;
   border-radius: 10vw;
+  background-color: var(--pause-bg-color);
+  color: var(--pause-fg-color);
 }
 .lose{
+  color: var(--lose-info-color);
 }
 /* settingwindow decorations ------------------------------------- */
 #settingwindow{
   position: absolute;
   display: none;
   z-index: 9;
+  background-color: var(--setting-bg-color);
 }
 #settingwindow input,select{
   font-size: 100%;
@@ -131,20 +147,25 @@ a {
   border: 3px solid;
   padding: 2vh 4vw;
   font-size: 1.8vw;
+  border-color: var(--setting-frame);
 }
 .popuptitle{
   font-size: 2.2vw;
   padding: 2vh 2vw;
   margin-bottom: 2vh;
+  background-color: var(--setting-title);
 }
 /* toggle switch ----------------------------------------- */
 .switch  {
   display: none; /* 標準のチェックボックスを非表示に */
 }
 .slider:before {
+  background-color: var(--slider-bg);
+  color: var(--slider-fg);
 }
 input:checked + .slider:before {
   content: "\f205"; /* fa-toggle-on */
+  color: var(--checked-fg);
 }
 /* Segmented Control ----------------------------------------- */
 /* (参考) https://ginpen.com/2012/12/11/segmented-control/ */
@@ -157,9 +178,87 @@ input:checked + .slider:before {
   padding: 0.5em 1em;
   text-align: center;
   width: 12vw;
+  background-color: var(--segmented-disable-bg);
+  border-color: var(--segmented-frame);
+  color: var(--segmented-disable-fg);
 }
 .segmented input {
   display: none;
 }
 .segmented input:checked + .label {
+  background-color: var(--segmented-enable-bg);
+  color: var(--segmented-enable-fg);
+}
+/* Theme Color Definition ------------------------------------- */
+.cool{
+  --body-bg-color:       #efe;
+  --score-bg-color:      #ddf;
+  --btn-enable:          #adf;
+  --btn-frame-enable:    #29f;
+  --btn-frame-enable:    #29f;
+  --btn-disable:         #ddd;
+  --btn-frame-disable:   #aaa;
+  --btn-frame-disable:   #aaa;
+  --pause-bg-color:      #dfd;
+  --pause-fg-color:      #00f;
+  --lose-info-color:     #f00;
+  --setting-bg-color:    #dff;
+  --setting-frame:       #00f;
+  --setting-title:       #adf;
+  --slider-bg:           #dff;
+  --slider-fg:           #999;
+  --checked-fg:          #29f;
+  --segmented-disable-bg:#eee;
+  --segmented-frame:     #ccc;
+  --segmented-disable-fg:#666;
+  --segmented-enable-bg: #29f;
+  --segmented-enable-fg: #fff;
+}
+.warm{
+  --body-bg-color:       #fee;
+  --score-bg-color:      #fbb;
+  --btn-enable:          #dc9;
+  --btn-frame-enable:    #932;
+  --btn-frame-enable:    #932;
+  --btn-disable:         #ddd;
+  --btn-frame-disable:   #aaa;
+  --btn-frame-disable:   #aaa;
+  --pause-bg-color:      #fdd;
+  --pause-fg-color:      #c67;
+  --lose-info-color:     #f00;
+  --setting-bg-color:    #ffd;
+  --setting-frame:       #f22;
+  --setting-title:       #dc9;
+  --slider-bg:           #ffd;
+  --slider-fg:           #bbb;
+  --checked-fg:          #932;
+  --segmented-disable-bg:#eee;
+  --segmented-frame:     #ccc;
+  --segmented-disable-fg:#666;
+  --segmented-enable-bg: #932;
+  --segmented-enable-fg: #fff;
+}
+.mono{
+  --body-bg-color:       #eee;
+  --score-bg-color:      #ccc;
+  --btn-enable:          #bbb;
+  --btn-frame-enable:    #444;
+  --btn-frame-enable:    #444;
+  --btn-disable:         #ddd;
+  --btn-frame-disable:   #aaa;
+  --btn-frame-disable:   #aaa;
+  --pause-bg-color:      #ddd;
+  --pause-fg-color:      #444;
+  --lose-info-color:     #f00;
+  --setting-bg-color:    #ddd;
+  --setting-frame:       #444;
+  --setting-title:       #bbb;
+  --slider-bg:           #ddd;
+  --slider-fg:           #bbb;
+  --checked-fg:          #444;
+  --segmented-disable-bg:#eee;
+  --segmented-frame:     #ccc;
+  --segmented-disable-fg:#666;
+  --segmented-enable-bg: #444;
+  --segmented-enable-fg: #fff;
 }

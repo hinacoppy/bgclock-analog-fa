@@ -238,20 +238,9 @@ function timeup_lose(turn) {
 
 //テーマカラーを変更
 function change_theme(theme) {
-  switch (theme) {
-  case "warm":
-    $("#themecss").attr("href", "css/theme_warm.css");
-    themecolor = set_themecolor(theme);
-    break;
-  case "cool":
-    $("#themecss").attr("href", "css/theme_cool.css");
-    themecolor = set_themecolor(theme);
-    break;
-  case "mono":
-    $("#themecss").attr("href", "css/theme_mono.css");
-    themecolor = set_themecolor(theme);
-    break;
-  }
+  $("body").removeClass("warm cool mono").addClass(theme);
+  themecolor = set_themecolor(theme);
+
   //テーマに合わせてcanvasオブジェクトを再描画
   draw_timerframe(cv1,timer[1],"pause");
   draw_timerframe(cv2,timer[2],"pause");
