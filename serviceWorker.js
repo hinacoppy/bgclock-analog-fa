@@ -1,7 +1,7 @@
 /* serviceWorker.js */
 'use strict';
 
-const CACHE_NAME = "bgclock-analog-fa-v1";
+const CACHE_NAME = "bgclock-analog-fa-v20210623";
 const ORIGIN = (location.hostname == 'localhost') ? '' : location.protocol + '//' + location.hostname;
 
 const STATIC_FILES = [
@@ -14,19 +14,19 @@ const STATIC_FILES = [
   ORIGIN + '/bgclock-analog-fa/icon/android-chrome-192x192.png',
   ORIGIN + '/bgclock-analog-fa/icon/android-chrome-512x512.png',
   ORIGIN + '/bgclock-analog-fa/css/bgclock-analog.css',
-  ORIGIN + '/bgclock-analog-fa/css/fontawesome.all.min.css',
-  ORIGIN + '/bgclock-analog-fa/css/font-awesome-animation.min.css',
   ORIGIN + '/bgclock-analog-fa/css/theme_cool.css',
   ORIGIN + '/bgclock-analog-fa/css/theme_mono.css',
   ORIGIN + '/bgclock-analog-fa/css/theme_warm.css',
   ORIGIN + '/bgclock-analog-fa/js/bgclock-analog.js',
   ORIGIN + '/bgclock-analog-fa/js/theme_color.js',
-  ORIGIN + '/bgclock-analog-fa/js/start_serviceWorker.js',
-  ORIGIN + '/bgclock-analog-fa/js/jquery-3.4.1.min.js',
   ORIGIN + '/bgclock-analog-fa/sounds/decision1.mp3',
   ORIGIN + '/bgclock-analog-fa/sounds/decision7.mp3',
   ORIGIN + '/bgclock-analog-fa/sounds/warning2.mp3',
-  ORIGIN + '/bgclock-analog-fa/webfonts/fa-solid-900.woff2'
+  ORIGIN + '/bgclock-analog-fa/webfonts/fa-solid-900.woff2',
+  ORIGIN + '/css/fontawesome.all.min.css',
+  ORIGIN + '/css/font-awesome-animation.min.css',
+  ORIGIN + '/js/jquery-3.6.0.min.js',
+  ORIGIN + '/js/start_serviceWorker.js'
 ];
 
 const CACHE_KEYS = [
