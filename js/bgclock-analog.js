@@ -68,7 +68,7 @@ $(function() {
       pause_in("PAUSE");
       stopTimer();
     }
-    sound_vibe("pause");
+    sound_vibration("pause");
   });
 
   //クロックの場所がクリック(タップ)されたとき
@@ -99,7 +99,6 @@ $(function() {
 
   $("#matchlength,#allotedtimemin").on('change', function() {
     const allotedtimemin = get_allowtimemin();
-    allotedtime = allotedtimemin * 60;
     $("#allotedtime").text(allotedtimemin);
   });
 
@@ -143,8 +142,6 @@ function set_initial_vars() {
   allotedtime = get_allowtimemin() * 60;
   timer = [0, allotedtime, allotedtime];
   turn = 0; //手番をリセット
-  theme = $("[name=theme]:checked").val();
-  change_theme(theme);
   soundflg = $("[name=sound]").prop("checked");
   vibrationflg = $("[name=vibration]").prop("checked");
   hourhandflg = $("[name=hourhand]").prop("checked");
@@ -194,7 +191,7 @@ function tap_timerarea(idname) {
     pause_out();
   }
   turn = tappos==1 ? 2 : tappos==2 ? 1 : 0; //手番切替え
-  sound_vibe("tap");
+  sound_vibration("tap");
 
   stopTimer(); //自分方のクロックを止める
 
@@ -240,7 +237,7 @@ function timeup_lose(turn) {
   stopTimer();
   timeoutflg = true;
   pause_in("TIMEOUT"); //ポーズ状態に遷移
-  sound_vibe("buzzer");
+  sound_vibration("buzzer");
 }
 
 //テーマカラーを変更
@@ -255,7 +252,7 @@ function change_theme(theme) {
 }
 
 //音とバイブレーション
-function sound_vibe(type) {
+function sound_vibration(type) {
   sound(type);
   vibration(type);
 }
@@ -263,21 +260,15 @@ function sound_vibe(type) {
 //音を鳴らす
 function sound(type) {
   if (soundflg) {
-    $('#'+type).get(0).play(); //音の種類は引数で指定
+    $('#' + type).get(0).play(); //音の種類は引数で指定
   }
 }
 
 //バイブレーション
 function vibration(type) {
   if (vibrationflg) {
-    switch (type) {
-    case "tap":
-      navigator.vibrate( 50 );  break;
-    case "pause":
-      navigator.vibrate( [50, 50, 100] );  break;
-    case "buzzer":
-      navigator.vibrate( 1000 ); break;
-    }
+    const vibrationdata = {tap: 50, pause: [50, 50, 100], buzzer: 1000};
+    navigator.vibrate(vibrationdata[type]);
   }
 }
 
