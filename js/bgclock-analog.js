@@ -1,4 +1,5 @@
 // Backgammon Clock and Score board App 用 JavaScript
+'use strict';
 
   //広域変数
   var score = [0, 0, 0]; //スコアを初期設定。引数を1,2として使うため、配列要素は3つ用意
@@ -13,7 +14,7 @@
   var pauseflg = true; //pause状態で起動する
   var timeoutflg = false;
   var settingwindowflg = false;
-  var clock; //タイマ用変数
+  var clockobj; //タイマ用変数
   var clockspd = 1000; //msec どこまでの精度で時計を計測するか
                        //1000の約数でないと時計の進みがいびつになり、使いにくい
                        //200msecだと残時間管理が精密になるがブラウザのCPU負荷が上がる
@@ -21,19 +22,19 @@
   var hourhandflg = true;
   var soundflg = true;
   var vibrationflg = false; //バイブレーションの初期設定は無効
-  var iosflg = is_iOS();
-  if (iosflg) { $("#tr_vibration").css("display", "none"); } //iOSのときはバイブレーションの設定項目を表示しない
+  if (is_iOS()) { $("#tr_vibration").hide(); } //iOSのときはバイブレーションの設定項目を表示しない
 
   var theme = "cool";
   var themecolor = set_themecolor(theme);
 
   var cv1 = {}, cv2 = {}, cv3 = {}; //canvasで使うための状態を保持するオブジェクト
+  var settings = {}; //設定内容を保持するオブジェクト
 
 //イベントハンドラの定義
 $(function() {
 
   //設定画面の[APPLY] ボタンがクリックされたとき
-  $("#applybtn").on('click', function(e) {
+  $("#applybtn").on('click', function() {
     settingwindowflg = false;
     set_initial_vars();
     $("#settingwindow").slideUp("normal");
@@ -41,24 +42,24 @@ $(function() {
   });
 
   //設定画面の[CANCEL] ボタンがクリックされたとき
-  $("#cancelbtn").on('click', function(e) {
+  $("#cancelbtn").on('click', function() {
     settingwindowflg = false;
-    $("#settingwindow").slideUp("normal"); //設定画面を消す
+    $("#settingwindow").slideUp("normal", () => load_settings()); //設定画面を消す、消した後に設定画面表示時の設定内容に戻す
     $("#settingbtn,#pausebtn,#score1up,#score1dn,#score2up,#score2dn").removeClass("btndisable"); //ボタンクリックを有効化
   });
 
   //メイン画面の[SETTING] ボタンがクリックされたとき
-  $("#settingbtn").on('click', function(e) {
+  $("#settingbtn").on('click', function() {
     if ($(this).hasClass("btndisable")) { return; } //disableのときは何もしない
     settingwindowflg = true;
-    topleft = winposition( $("#settingwindow") );
-    $("#settingwindow").css(topleft).slideDown("normal"); //画面表示
+    const topleft = winposition( $("#settingwindow") );
+    $("#settingwindow").css(topleft).slideDown("normal", () => save_settings()); //画面表示、現状の設定内容を保存
     $("#settingbtn,#pausebtn,#score1up,#score1dn,#score2up,#score2dn").addClass("btndisable"); //ボタンクリックを無効化
   });
 
   //メイン画面の[PAUSE] ボタンがクリックされたとき
-  $("#pausebtn").on('click', function(e) {
-    if (turn == 0) { return; } //どちらの手番でもない場合は何もしない
+  $("#pausebtn").on('click', function() {
+    if (turn == 0 || timeoutflg) { return; } //どちらの手番でもない or タイマ切れのときは何もしない
     if ($(this).hasClass("btndisable")) { return; } //disableのときは何もしない
     if (pauseflg) { //PAUSE -> PLAY
       pause_out();
@@ -67,47 +68,53 @@ $(function() {
       pause_in("PAUSE");
       stopTimer();
     }
-    sound("pause"); vibration("pause");
+    sound_vibe("pause");
   });
 
   //クロックの場所がクリック(タップ)されたとき
   $("#timer1cv,#timer2cv").on('touchstart mousedown', function(e) {
     e.preventDefault(); // touchstart以降のイベントを発生させない
     if (timeoutflg || settingwindowflg) { return; } //タイマ切れ状態 or 設定画面のときは何もしない
-    idname = $(this).attr("id");
+    const idname = $(this).attr("id");
     tap_timerarea(idname);
   });
 
   //スコア操作のボタンがクリックされたとき
-  $("#score1up,#score1dn,#score2up,#score2dn").on('click', function(e) {
+  $("#score1up,#score1dn,#score2up,#score2dn").on('click', function() {
     if ($(this).hasClass("btndisable") || settingwindowflg) { return; } //disableのときは何もしない
-    idname = $(this).attr("id");
+    const idname = $(this).attr("id");
     modify_score(idname);
   });
 
   //テーマが変更されたとき
-  $("#theme").on('change', function(e) {
+  $("#theme").on('change', function() {
     theme = $("[name=theme]:checked").val();
     change_theme(theme);
   });
 
   //画面が表示されたときとリサイズ(スマホの縦横が変更)されたとき
-  $(window).on('load resize', function(){
+  $(window).on('load resize', function() {
     init_canvas();
+  });
+
+  $("#matchlength,#allotedtimemin").on('change', function() {
+    const allotedtimemin = get_allowtimemin();
+    allotedtime = allotedtimemin * 60;
+    $("#allotedtime").text(allotedtimemin);
   });
 
 }); //close to $(function() {
 
 //スコア操作ボタンによるスコア設定
 function modify_score(idname) {
-  player = Number(idname.substr(5,1));
-  updn   = idname.substr(6,1);
-
-  delta = updn=="u" ? +1 : updn=="d" ? -1 : 0; //押されたボタンを判断し、増減を決める
+  const player = Number(idname.substr(5, 1));
+  const updn = idname.substr(6, 1);
+  const delta = updn == "u" ? +1 : updn == "d" ? -1 : 0; //押されたボタンを判断し、増減を決める
   score[player] += delta;
   if (score[player] < 0) { score[player] = 0; }
 
   //Crawfordかどうかを判断
+  let cfstr;
   if (matchlength - score[player] == 1 && crawford == 0) {
     crawford = 1; cfplayer = player; cfstr = "Crawford";
   } else if (crawford == 2 || (crawford == 1 && cfplayer != player)) {
@@ -128,16 +135,12 @@ function set_initial_vars() {
   score = [0, 0, 0];
   $("#score1").text(score[1]);
   $("#score2").text(score[2]);
-  matchlength = $("#matchlength").val();
+  matchlength = Number($("#matchlength").val());
   crawford = 0;
-  if (matchlength == 0) { //unlimited
-    gamemodestr = "Unlimited game";
-  } else {
-    gamemodestr = "Match game to "+ matchlength;
-  }
+  gamemodestr = (matchlength == 0) ? "Unlimited game" : "Match game to "+ matchlength;
   $("#gamemode").text(gamemodestr);
-  delay = delaytime = Number($("#delaytime").val());
-  allotedtime = Number($("#allotedtimemin").val()) * 60;
+  delaytime = Number($("#delaytime").val());
+  allotedtime = get_allowtimemin() * 60;
   timer = [0, allotedtime, allotedtime];
   turn = 0; //手番をリセット
   theme = $("[name=theme]:checked").val();
@@ -153,18 +156,20 @@ function set_initial_vars() {
 //PLAY -> PAUSE
 function pause_in(stat) {
   pauseflg = true;
+  const icon = get_pauseicon(stat);
+  $("#pauseinfo").html(icon).show();
+  $("#settingbtn,#score1up,#score1dn,#score2up,#score2dn").removeClass("btndisable"); //ボタンクリックを有効化
+  draw_timerframe(cv1, timer[1], "pause"); //クロックをPAUSE状態で表示
+  draw_timerframe(cv2, timer[2], "pause");
+}
+
+function get_pauseicon(stat) {
   switch (stat) {
   case "PAUSE":
-    font = "<i class='fas fa-pause-circle fa-8x'></i>";
-    break;
+    return "<i class='fas fa-pause-circle fa-8x'></i>";
   case "TIMEOUT":
-    font = "<i class='fas fa-bomb fa-8x faa-tada animated'></i>";
-    break;
+    return "<i class='fas fa-bomb fa-8x faa-tada animated'></i>";
   }
-  $("#pauseinfo").html(font).show();
-  $("#settingbtn,#score1up,#score1dn,#score2up,#score2dn").removeClass("btndisable"); //ボタンクリックを有効化
-  draw_timerframe(cv1,timer[1],"pause"); //クロックをPAUSE状態で表示
-  draw_timerframe(cv2,timer[2],"pause");
 }
 
 //PAUSE -> PLAY
@@ -173,14 +178,14 @@ function pause_out() {
   $("#pauseinfo").hide();
   $("#settingbtn,#score1up,#score1dn,#score2up,#score2dn").addClass("btndisable"); //ボタンクリックを無効化
   //クロックの稼働/停止を再表示
-  nonturn = turn==1 ? 2 : 1; //手番じゃないほう
-  draw_timerframe((turn==1 ? cv1:cv2),timer[turn],"teban");
-  draw_timerframe((turn==1 ? cv2:cv1),timer[nonturn],"noteban");
+  const nonturn = turn==1 ? 2 : 1; //手番じゃないほう
+  draw_timerframe((turn==1 ? cv1:cv2), timer[turn], "teban");
+  draw_timerframe((turn==1 ? cv2:cv1), timer[nonturn], "noteban");
 }
 
 //クロック表示場所をクリック(タップ)したときの処理
 function tap_timerarea(idname) {
-  tappos = Number(idname.substr(5,1));
+  const tappos = Number(idname.substr(5,1));
   //クロック稼働中で相手側(グレーアウト側)をクリックしたときは何もしない
   //＝相手の手番、またはポーズのときは以下の処理を実行
   if (turn != tappos && pauseflg == false) { return; }
@@ -188,28 +193,28 @@ function tap_timerarea(idname) {
   if (pauseflg) { //ポーズ状態のときはポーズを解除
     pause_out();
   }
-  turn = ( tappos==1 ? 2 : tappos==2 ? 1 : 0 ); //手番切替え
-  sound("tap"+turn); vibration("tap");
+  turn = tappos==1 ? 2 : tappos==2 ? 1 : 0; //手番切替え
+  sound_vibe("tap");
 
   stopTimer(); //自分方のクロックを止める
 
   delay = delaytime; //保障時間を設定
-  draw_delayframe(cv3,delaytime,delay);
+  draw_delayframe(cv3, delaytime, delay);
 
   startTimer(turn); //相手方のクロックをスタートさせる
 
   //クロックの稼働/停止を切替え
-  nonturn = turn==1 ? 2 : 1; //手番じゃないほう
-  draw_timerframe((turn==1 ? cv1:cv2),timer[turn],"teban");
-  draw_timerframe((turn==1 ? cv2:cv1),timer[nonturn],"noteban");
+  const nonturn = turn==1 ? 2 : 1; //手番じゃないほう
+  draw_timerframe((turn==1 ? cv1:cv2), timer[turn], "teban");
+  draw_timerframe((turn==1 ? cv2:cv1), timer[nonturn], "noteban");
 }
 
 function startTimer(turn) {
-  clock = setInterval(function(){countdown(turn);}, clockspd);
+  clockobj = setInterval(() => countdown(turn), clockspd);
 }
 
 function stopTimer() {
-  clearInterval(clock);
+  clearInterval(clockobj);
 }
 
 //クロックをカウントダウン
@@ -218,12 +223,14 @@ function countdown(turn) {
     //保障時間内
     delay -= clockspd / 1000;
     if (delay < 0) { delay = 0; }
-    draw_delayframe(cv3,delaytime,delay);
+    draw_delayframe(cv3, delaytime, delay);
   } else {
     //保障時間切れ後
     timer[turn] -= clockspd / 1000;
-    if (timer[turn] <= 0) { timeup_lose(turn); return; } //切れ負け処理
-    draw_timerframe((turn==1 ? cv1:cv2),timer[turn],"teban"); //手番側の時計を進ませて表示
+    draw_timerframe((turn==1 ? cv1:cv2), timer[turn], "teban"); //手番側の時計を進ませて表示
+    if (timer[turn] <= 0) { //切れ負け処理
+      timeup_lose(turn);
+    }
   }
 }
 
@@ -233,7 +240,7 @@ function timeup_lose(turn) {
   stopTimer();
   timeoutflg = true;
   pause_in("TIMEOUT"); //ポーズ状態に遷移
-  sound("buzzer"); vibration("buzzer");
+  sound_vibe("buzzer");
 }
 
 //テーマカラーを変更
@@ -242,9 +249,15 @@ function change_theme(theme) {
   themecolor = set_themecolor(theme);
 
   //テーマに合わせてcanvasオブジェクトを再描画
-  draw_timerframe(cv1,timer[1],"pause");
-  draw_timerframe(cv2,timer[2],"pause");
-  draw_delayframe(cv3,delaytime,delay);
+  draw_timerframe(cv1, timer[1], "pause");
+  draw_timerframe(cv2, timer[2], "pause");
+  draw_delayframe(cv3, delaytime, delay);
+}
+
+//音とバイブレーション
+function sound_vibe(type) {
+  sound(type);
+  vibration(type);
 }
 
 //音を鳴らす
@@ -270,16 +283,16 @@ function vibration(type) {
 
 //画面中央に表示するための左上座標を計算
 function winposition(winobj) {
-  wx = $(document).scrollLeft() + ($(window).width() - winobj.outerWidth()) / 2;
+  let wx = $(document).scrollLeft() + ($(window).width() - winobj.outerWidth()) / 2;
   if (wx < 0) { wx = 0; }
-  wy = $(document).scrollTop() + ($(window).height() - winobj.outerHeight()) / 2;
+  let wy = $(document).scrollTop() + ($(window).height() - winobj.outerHeight()) / 2;
   if (wy < 0) { wy = 0; }
   return {top:wy, left:wx};
 }
 
 //UserAgentを確認し、iOSか否かを判断する
 function is_iOS() {
-  ua = window.navigator.userAgent.toLowerCase();
+  const ua = window.navigator.userAgent.toLowerCase();
   return (ua.indexOf('iphone') !== -1 || ua.indexOf('ipod') !== -1 || ua.indexOf('ipad') !== -1);
 }
 
@@ -299,14 +312,15 @@ function init_canvas() {
   cv3.height = $("#delay").height();
 
   //canvasオブジェクトを描画
-  draw_timerframe(cv1,timer[1],"pause");
-  draw_timerframe(cv2,timer[2],"pause");
-  draw_delayframe(cv3,delaytime,delay);
+  draw_timerframe(cv1, timer[1], "pause");
+  draw_timerframe(cv2, timer[2], "pause");
+  draw_delayframe(cv3, delaytime, delay);
 }
 
 //タイマーを表示
 function draw_timerframe(cv,timer,stat){
   const s0 = (cv.width < cv.height) ? cv.width : cv.height; //小さいほう
+  let s, backcolor;
   switch(stat) {
     case "pause":
       s = s0 * 1.0;
@@ -329,10 +343,10 @@ function draw_timerframe(cv,timer,stat){
   const h = cv.canvas.height = s;
   const r = s/2; //半径
   const center = {x : r, y : r}; //中心
-  const lh = r*0.70; //時針長さ
-  const lm = r*0.80; //分針長さ
-  const ls = r*0.90; //秒針長さ
-  const lr = r*0.20; //針の後ろの長さ
+  const lh = r * 0.70; //時針長さ
+  const lm = r * 0.80; //分針長さ
+  const ls = r * 0.90; //秒針長さ
+  const lr = r * 0.20; //針の後ろの長さ
 
   //背景
   ctx.fillStyle = backcolor;
@@ -341,7 +355,7 @@ function draw_timerframe(cv,timer,stat){
   //外枠
   ctx.strokeStyle = themecolor.clock_border;
   ctx.lineWidth = 5;
-  ctx.strokeRect(0, 0, w-1, h-1);
+  ctx.strokeRect(0, 0, w - 1, h - 1);
 
   //描画開始位置を中心に移動
   ctx.translate(center.x, center.y);
@@ -351,10 +365,10 @@ function draw_timerframe(cv,timer,stat){
   ctx.strokeStyle = themecolor.dots_min;
   ctx.lineWidth = 2;
   ctx.beginPath();
-    for (let i=0;i<60;i++){
-      ctx.moveTo(r,0);
-      ctx.lineTo(r-10,0);
-      ctx.rotate(Math.PI/30);
+    for (let i = 0; i < 60; i++){
+      ctx.moveTo(r, 0);
+      ctx.lineTo(r - 10, 0);
+      ctx.rotate(Math.PI / 30);
     }
   ctx.stroke();
 
@@ -362,55 +376,55 @@ function draw_timerframe(cv,timer,stat){
   ctx.strokeStyle = themecolor.dots_hour;
   ctx.lineWidth = 3;
   ctx.beginPath();
-    for (let i=0;i<12;i++){
-      ctx.moveTo(r,0);
-      ctx.lineTo(r-20,0);
-      ctx.rotate(Math.PI/6);
+    for (let i = 0; i < 12; i++){
+      ctx.moveTo(r, 0);
+      ctx.lineTo(r - 20, 0);
+      ctx.rotate(Math.PI / 6);
     }
   ctx.stroke();
   ctx.restore();
 
   //針の設定
   //60ではなく、59.999にすることで、0秒、0分のとき0度になるようにする
-  const sec = 59.999 - (timer % 60);
-  const min = Math.floor(59.999 - (timer / 60));
-  const hr = Math.floor(11.999 - (timer / 3600));
+  const sec = 59.9999 - (timer % 60);
+  const min = Math.floor(59.9999 - ((timer % 3600) / 60));
+  const hr = Math.floor(11.9999 - (timer / 3600));
 
   //時針(短針)
   if (hourhandflg) { //trueのとき表示、falseのとき非表示
     ctx.save();
-    ctx.rotate((Math.PI/6)*hr + (Math.PI/360)*min + (Math.PI/21600)*sec);
+    ctx.rotate((Math.PI / 6) * hr + (Math.PI / 360) * min + (Math.PI / 21600) * sec);
     ctx.lineWidth = 8;
     ctx.strokeStyle = themecolor.hour_hand;
     ctx.beginPath();
-    ctx.moveTo(-3,lr);
-    ctx.lineTo(0,-lh);
-    ctx.lineTo(3,lr);
+    ctx.moveTo(-3, lr);
+    ctx.lineTo(0, -lh);
+    ctx.lineTo(3, lr);
     ctx.stroke();
     ctx.restore();
   } // if (hourhandflg)
 
   //分針(長針)
   ctx.save();
-  ctx.rotate((Math.PI/30)*min + (Math.PI/1800)*sec);
+  ctx.rotate((Math.PI / 30) * min + (Math.PI / 1800) * sec);
   ctx.lineWidth = 4;
   ctx.strokeStyle = themecolor.min_hand;
   ctx.beginPath();
-  ctx.moveTo(-2,lr);
-  ctx.lineTo(0,-lm);
-  ctx.lineTo(2,lr);
+  ctx.moveTo(-2, lr);
+  ctx.lineTo(0, -lm);
+  ctx.lineTo(2, lr);
   ctx.stroke();
   ctx.restore();
 
   //秒針
   ctx.save();
-  ctx.rotate(sec * Math.PI/30);
+  ctx.rotate(sec * Math.PI / 30);
   ctx.strokeStyle = themecolor.sec_hand;
   ctx.lineWidth = 2;
   ctx.beginPath();
-  ctx.moveTo(0,lr);
-  ctx.lineTo(0,-ls);
-//  ctx.lineTo(0,lr); //分針時針と同じコードにするが、無駄なのでコメントアウト
+  ctx.moveTo(0, lr);
+  ctx.lineTo(0, -ls);
+//  ctx.lineTo(0, lr); //分針時針と同じコードにするが、無駄なのでコメントアウト
   ctx.stroke();
   ctx.restore();
 
@@ -420,7 +434,7 @@ function draw_timerframe(cv,timer,stat){
   ctx.lineWidth = 3;
   ctx.strokeStyle = themecolor.center_stroke;
   ctx.fillStyle   = themecolor.center_fill;
-  ctx.arc(0,0,7,0,Math.PI*2,true);
+  ctx.arc(0, 0, 7, 0, Math.PI * 2, true);
   ctx.stroke();
   ctx.fill();
   ctx.restore();
@@ -431,30 +445,59 @@ function draw_delayframe(cv, delaytime, remain){
   const ctx = cv.ctx;
   const w = cv.canvas.width = cv.width;
   const h = cv.canvas.height = cv.height;
-  const r = (w>h ? h/2 : w/2); //半径は縦横の短いほうを選択
+  const r = (w > h ? h/2 : w/2); //半径は縦横の短いほうを選択
 
   ctx.clearRect(0, 0, w, h);
 
   //残delay時間
-  const angle = 360 * ((delaytime - remain)/delaytime);
+  const angle = 360 * ((delaytime - remain) / delaytime);
 
   //だんだん小さくなる円弧を描画
   ctx.beginPath();
-  ctx.arc(w/2, h/2, r-1, (angle - 90) * Math.PI/180, (360 - 90) * Math.PI/180, false);
-  ctx.lineTo( w/2, h/2);
+  ctx.arc(w/2, h/2, r-1, (angle - 90) * Math.PI / 180, (360 - 90) * Math.PI / 180, false);
+  ctx.lineTo(w/2, h/2);
   ctx.fillStyle = themecolor.delay_remain;
   ctx.fill();
   //だんだんおおきくなる円弧を描画
   ctx.beginPath();
-  ctx.arc(w/2, h/2, r-1,(angle - 90) * Math.PI/180, (0 - 90) * Math.PI/180, true);
-  ctx.lineTo( w/2, h/2);
+  ctx.arc(w/2, h/2, r - 1, (angle - 90) * Math.PI / 180, (0 - 90) * Math.PI / 180, true);
+  ctx.lineTo(w/2, h/2);
   ctx.fillStyle = themecolor.delay_used;
   ctx.fill();
 
   //外周
   ctx.beginPath();
-  ctx.arc(w/2, h/2, r-3, 0, Math.PI * 2, false); //外側divで削られないよう半径を調整
+  ctx.arc(w / 2, h / 2, r - 3, 0, Math.PI * 2, false); //外側divで削られないよう半径を調整
   ctx.strokeStyle = themecolor.delay_border;
   ctx.lineWidth = 5;
   ctx.stroke();
 }
+
+function get_allowtimemin() {
+  const allotedtime = Math.ceil(Number($("#matchlength").val()) * Number($("#allotedtimemin").val()));
+  return (allotedtime == 0) ? 720 : allotedtime; //Unlimitedの時は720分(12時間)とする
+}
+
+function save_settings() {
+  settings.matchlength    = $("#matchlength").val();
+  settings.playername1    = $("#playername1").val();
+  settings.playername2    = $("#playername2").val();
+  settings.allotedtimemin = $("#allotedtimemin").val();
+  settings.delaytime      = $("#delaytime").val();
+  settings.sound          = $("[name=sound]").prop("checked");
+  settings.vibration      = $("[name=vibration]").prop("checked");
+  settings.hourhand       = $("[name=hourhand]").prop("checked");
+}
+
+function load_settings() {
+  $("#matchlength")    .val(settings.matchlength);
+  $("#playername1")    .val(settings.playername1);
+  $("#playername2")    .val(settings.playername2);
+  $("#allotedtimemin") .val(settings.allotedtimemin);
+  $("#delaytime")      .val(settings.delaytime);
+  $("[name=sound]")    .prop("checked", settings.sound);
+  $("[name=vibration]").prop("checked", settings.vibration);
+  $("[name=hourhand]") .prop("checked", settings.hourhand);
+  $("#allotedtime")    .text(get_allowtimemin());
+}
+

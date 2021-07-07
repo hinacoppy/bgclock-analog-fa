@@ -15,9 +15,12 @@ body{
   font-family: 'Arial', 'Meiryo UI';
   background-color: var(--body-bg-color);
 }
-a {
+a{
   color: inherit;
   text-decoration: none;
+}
+button{
+  padding: 0;
 }
 /* Grid Layout settings ------------------------------------- */
 /* 以下すべて相対サイズにし、レスポンシブ対応可能にしておく */

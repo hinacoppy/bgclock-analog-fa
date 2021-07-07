@@ -1,4 +1,6 @@
 // Backgammon Clock and Score board App 用 theme_color.js
+'use strict';
+
 function set_themecolor(theme) {
   let themecolor = {};
   switch (theme) {
