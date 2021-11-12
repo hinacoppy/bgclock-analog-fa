@@ -9,7 +9,6 @@
   <meta name="author" content="(C)hinacoppy 2018 - 2021">
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="css/bgclock-analog.css">
-  <link rel="stylesheet" href="/css/fontawesome.all.min.css">
   <link rel="stylesheet" href="/css/font-awesome-animation.min.css">
   <link rel="icon" href="icon/favicon.ico">
   <link rel="apple-touch-icon" href="icon/apple-touch-icon.png">
@@ -59,7 +58,7 @@
 </td></tr>
 <tr><td>Match length:</td><td>
 <select id="matchlength" name="matchlength">
-<option value="0">0</option>
+<option value="0">$</option>
 <option value="1">1</option>
 <option value="2">2</option>
 <option value="3">3</option>
@@ -75,7 +74,7 @@
 <option value="23">23</option>
 <option value="25">25</option>
 </select>
-&nbsp; (0 = Unlimited)
+&nbsp; ($ = Unlimited)
 </td></tr>
 <tr><td>Clock time:</td><td>
 <span id="allotedtime">10</span> min. &nbsp; = &nbsp; Pt &nbsp; x &nbsp;
@@ -96,16 +95,16 @@ Delay: &nbsp;
 &nbsp; sec.
 </td></tr>
 <tr><td>Sound:</td><td>
-<label><input type="checkbox" name="sound" class="switch" checked>
-       <i class="fas fa-toggle-off fa-3x slider"></i></label>
+<input type="checkbox" id="sound" name="sound" class="switch" checked>
+<label for="sound" class="togglelabel"> &nbsp; </label>
 </td></tr>
 <tr id="tr_vibration"><td>Vibration:</td><td>
-<label><input type="checkbox" name="vibration" class="switch">
-       <i class="fas fa-toggle-off fa-3x slider"></i></label>
+<input type="checkbox" id="vibration" name="vibration" class="switch">
+<label for="vibration" class="togglelabel"> &nbsp; </label>
 </td></tr>
 <tr><td>Show hour-hand:</td><td>
-<label><input type="checkbox" name="hourhand" class="switch" checked>
-       <i class="fas fa-toggle-off fa-3x slider"></i></label>
+<input type="checkbox" id="hourhand" name="hourhand" class="switch" checked>
+<label for="hourhand" class="togglelabel"> &nbsp; </label>
 </td></tr>
 <tr><td>Theme color:</td><td>
   <span id="theme" class="segmented">
@@ -121,6 +120,7 @@ Delay: &nbsp;
 <a href="help.html" target="bgclockhelp"><button id="helpbtn" class="oparationbtn btnenable">&emsp;<i class="fas fa-question fa-2x"></i>&emsp;</button></a>
 </aside>
 
+<script src="/js/fontawesome-all.min.js" defer></script>
 <script src="/js/jquery-3.6.0.min.js"></script>
 <script src="js/theme_color.js"></script>
 <script src="js/bgclock-analog.js"></script>
