@@ -159,38 +159,43 @@ button{
   background-color: var(--setting-title);
 }
 /* toggle switch ----------------------------------------- */
-.switch  {
-  display: none; /* 標準のチェックボックスを非表示に */
+/* (参考) https://www.w3schools.com/howto/howto_css_switch.asp */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 4em;
+  height: 2em;
+  background-color: var(--slider-bg);
 }
-.togglelabel {
-  display:inline-block;
-  width:auto;
-  position:relative;
-  padding:15px 30px 15px 62px;
-  border:3px solid #fff;
-  border-radius:100px;
-  color:#fff;
-  background-color:#999;
-  white-space:nowrap;
-  transition:background-color .2s, box-shadow .2s;
+.switch input {
+  display: none;
 }
-.togglelabel::before {
-  content:'';
-  display:block;
-  position:absolute;
-  top:10px;
-  bottom:10px;
-  left:10px;
-  width:32px;
-  border:3px solid #fff;
-  border-radius:100px;
-  transition:background-color .2s;
+.slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  transition: .3s;
+  border-radius: 1.6em; /* Rounded sliders */
+  background-color: var(--slider-fg);
 }
-.switch:checked + label {
-  background-color:#29f;
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 1.6em;
+  width: 1.6em;
+  left: 0.2em;
+  bottom: 0.2em;
+  transition: .3s;
+  border-radius: 50%;
+  background-color: var(--slider-btn);
 }
-.switch:checked + label::before {
-  background-color:#fff;
+input:checked + .slider {
+  background-color: var(--slider-checked);
+}
+input:checked + .slider:before {
+  transform: translateX(2.0em);
 }
 /* Segmented Control ----------------------------------------- */
 /* (参考) https://ginpen.com/2012/12/11/segmented-control/ */
@@ -220,9 +225,7 @@ button{
   --score-bg-color:      #ddf;
   --btn-enable:          #adf;
   --btn-frame-enable:    #29f;
-  --btn-frame-enable:    #29f;
   --btn-disable:         #ddd;
-  --btn-frame-disable:   #aaa;
   --btn-frame-disable:   #aaa;
   --pause-bg-color:      #dfd;
   --pause-fg-color:      #00f;
@@ -232,7 +235,8 @@ button{
   --setting-title:       #adf;
   --slider-bg:           #dff;
   --slider-fg:           #999;
-  --checked-fg:          #29f;
+  --slider-checked:      #29f;
+  --slider-btn:          #fff;
   --segmented-disable-bg:#eee;
   --segmented-frame:     #ccc;
   --segmented-disable-fg:#666;
@@ -244,9 +248,7 @@ button{
   --score-bg-color:      #fbb;
   --btn-enable:          #dc9;
   --btn-frame-enable:    #932;
-  --btn-frame-enable:    #932;
   --btn-disable:         #ddd;
-  --btn-frame-disable:   #aaa;
   --btn-frame-disable:   #aaa;
   --pause-bg-color:      #fdd;
   --pause-fg-color:      #c67;
@@ -256,7 +258,8 @@ button{
   --setting-title:       #dc9;
   --slider-bg:           #ffd;
   --slider-fg:           #bbb;
-  --checked-fg:          #932;
+  --slider-checked:      #932;
+  --slider-btn:          #fff;
   --segmented-disable-bg:#eee;
   --segmented-frame:     #ccc;
   --segmented-disable-fg:#666;
@@ -268,9 +271,7 @@ button{
   --score-bg-color:      #ccc;
   --btn-enable:          #bbb;
   --btn-frame-enable:    #444;
-  --btn-frame-enable:    #444;
   --btn-disable:         #ddd;
-  --btn-frame-disable:   #aaa;
   --btn-frame-disable:   #aaa;
   --pause-bg-color:      #ddd;
   --pause-fg-color:      #444;
@@ -280,7 +281,8 @@ button{
   --setting-title:       #bbb;
   --slider-bg:           #ddd;
   --slider-fg:           #bbb;
-  --checked-fg:          #444;
+  --slider-checked:      #444;
+  --slider-btn:          #fff;
   --segmented-disable-bg:#eee;
   --segmented-frame:     #ccc;
   --segmented-disable-fg:#666;
